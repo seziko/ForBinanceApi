@@ -6,7 +6,6 @@ import com.seziko.BinanceApi.results.DataResult;
 import com.seziko.BinanceApi.results.Result;
 import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
-import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,5 +62,4 @@ public class BinanceController {
     public Result findBySymbolBinance(@RequestParam String symbol) throws IOException {
         return this.binanceService.findBySymbolBinance(symbol);
     }
-
 }

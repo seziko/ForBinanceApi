@@ -122,6 +122,5 @@ public class BinanceManagement implements BinanceService {
 
         binanceDao.save(binance);
         return new SuccessResult("Başarıyla eklendi..");
-
     }
 }
