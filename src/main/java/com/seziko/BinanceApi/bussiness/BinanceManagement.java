@@ -12,8 +12,11 @@ import com.seziko.BinanceApi.results.Result;
 import com.seziko.BinanceApi.results.SuccessDataResult;
 import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
+import com.seziko.BinanceApi.websocket.rabbitMq.RabbitMqConfig;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -23,12 +26,19 @@ import java.util.List;
 
 @Service
 public class BinanceManagement implements BinanceService {
+    RabbitTemplate template = new RabbitTemplate();
+    @Value("exhangeName")
+    String exchangeName;
+    @Value("routinKey")
+    String routingKey;
 
     private BinanceDao binanceDao;
+
 
     public BinanceManagement(BinanceDao binanceDao) {
         this.binanceDao = binanceDao;
     }
+
 
     @Override
     public DataResult<List<Binance>> getAll() {
@@ -103,16 +113,20 @@ public class BinanceManagement implements BinanceService {
         BinanceApiRestClient client = factory.newRestClient();
         List<TickerPrice> allPrices = client.getAllPrices();
 
-
+            template.convertAndSend(exchangeName,routingKey,allPrices);
         return allPrices;
     }
     @Override
     public Result findBySymbolBinance(String symbol){
+
+
+
         Binance binance = new Binance();
         BinanceApiClientFactory factory = BinanceApiClientFactory.newInstance("API-KEY", "SECRET");
         BinanceApiRestClient client = factory.newRestClient();
 
         TickerPrice prices = client.getPrice(symbol);
+
 
         String sembol;
         String fiyat;
