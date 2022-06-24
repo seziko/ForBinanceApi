@@ -12,7 +12,6 @@ import com.seziko.BinanceApi.results.Result;
 import com.seziko.BinanceApi.results.SuccessDataResult;
 import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
-import com.seziko.BinanceApi.websocket.rabbitMq.RabbitMqConfig;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -26,11 +25,6 @@ import java.util.List;
 
 @Service
 public class BinanceManagement implements BinanceService {
-    RabbitTemplate template = new RabbitTemplate();
-    @Value("exhangeName")
-    String exchangeName;
-    @Value("routinKey")
-    String routingKey;
 
     private BinanceDao binanceDao;
 
@@ -113,7 +107,6 @@ public class BinanceManagement implements BinanceService {
         BinanceApiRestClient client = factory.newRestClient();
         List<TickerPrice> allPrices = client.getAllPrices();
 
-            template.convertAndSend(exchangeName,routingKey,allPrices);
         return allPrices;
     }
     @Override
