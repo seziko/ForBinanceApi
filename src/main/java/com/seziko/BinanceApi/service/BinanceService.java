@@ -28,5 +28,16 @@ public interface BinanceService {
 
     Result findBySymbolBinance(String symbol) throws IOException;
 
+    Result connectBinanceWebSocket(String symbol);
+
+    DataResult<List<Binance>> getAllSorted();
+
+    DataResult<List<Binance>> getAll(int pageNo, int pageSize);
+
+    Result findByCount();
+
+    Result closeWs(String symbol) throws IOException;
+
+    List<Binance> getBySymbolAndPrice(String symbolName, String price);
 
 }

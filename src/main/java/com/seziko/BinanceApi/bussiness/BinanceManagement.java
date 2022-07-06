@@ -1,7 +1,10 @@
 package com.seziko.BinanceApi.bussiness;
 
+import com.binance.api.client.BinanceApiCallback;
 import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
+import com.binance.api.client.BinanceApiWebSocketClient;
+import com.binance.api.client.domain.event.AggTradeEvent;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -14,6 +17,9 @@ import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -123,5 +129,62 @@ public class BinanceManagement implements BinanceService {
         binanceDao.save(binance);
         return new SuccessResult("Başarıyla eklendi..");
 
+    }
+
+
+    @Override
+    public Result connectBinanceWebSocket(String symbol) {
+        BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+        Binance binance = new Binance();
+        client.onAggTradeEvent(symbol, (AggTradeEvent response) -> {
+
+            String sembol = response.getSymbol();
+            String fiyat = response.getPrice();
+
+            binance.sembol = sembol;
+            binance.fiyat = fiyat;
+            binance.id = response.getAggregatedTradeId();
+
+            //binanceDao.save(binance);
+            binanceDao.save(binance);
+
+
+            System.out.println("id: "+binance.getId()+" sembol: "+binance.getSembol()+" fiyat :"+binance.getFiyat());
+        });
+
+        return new SuccessResult("Binance üzerinden gelen veriler eklemeye başlandı..");
+
+    }
+    @Override
+    public Result closeWs(String symbol) throws IOException {
+        BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
+        Closeable ws = client.onAggTradeEvent(symbol, (BinanceApiCallback<AggTradeEvent>) connectBinanceWebSocket(symbol));
+        ws.close();
+        return new SuccessResult("Bağlantı kapandı..");
+    }
+
+    @Override
+    public DataResult<List<Binance>> getAllSorted() {
+        Sort sort = Sort.by(Sort.Direction.DESC,"id");
+        return new SuccessDataResult<List<Binance>>
+                (this.binanceDao.findAll(sort),"Başarılı..");
+    }
+
+    @Override
+    public DataResult<List<Binance>> getAll(int pageNo, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNo-1,pageSize);
+        return new SuccessDataResult<List<Binance>>(this.binanceDao.findAll(pageable).getContent(),pageNo+"/"+pageSize);
+    }
+
+    @Override
+    public Result findByCount() {
+        long count = binanceDao.count();
+        return new SuccessResult("Toplam "+count+" adet listelenmiştir."
+        );
+    }
+
+    @Override
+    public List<Binance> getBySymbolAndPrice(String symbolName, String price) {
+        return this.binanceDao.getBySymbolAndPrice(symbolName,price);
     }
 }
