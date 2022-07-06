@@ -17,9 +17,13 @@ import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
 import jdk.nashorn.internal.parser.JSONParser;
 import org.json.JSONArray;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
@@ -31,7 +35,7 @@ import java.util.List;
 public class BinanceManagement implements BinanceService {
 
     private BinanceDao binanceDao;
-
+    @Autowired
     public BinanceManagement(BinanceDao binanceDao) {
         this.binanceDao = binanceDao;
     }
