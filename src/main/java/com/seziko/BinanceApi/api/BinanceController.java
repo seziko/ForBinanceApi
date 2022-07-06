@@ -64,4 +64,36 @@ public class BinanceController {
         return this.binanceService.findBySymbolBinance(symbol);
     }
 
+    @GetMapping("/webSocket")
+    public Result connectBinanceWebSocket(String symbol){
+        return this.binanceService.connectBinanceWebSocket(symbol);
+    }
+
+    @GetMapping("/findBySortList")
+    public DataResult<List<Binance>> getAllSorted(){
+        return this.binanceService.getAllSorted();
+    }
+
+    @GetMapping("/getAllByPage")
+    public DataResult<List<Binance>> getAllByPage(int pageNo, int pageSize) {
+        return this.binanceService.getAll(pageNo,pageSize);
+    }
+    @GetMapping("/findbycount")
+    public Result findByCount(){
+        return this.binanceService.findByCount();
+    }
+
+    @GetMapping("/wsClose")
+    public Result wsClose(String symbol) throws IOException {
+        return this.binanceService.closeWs(symbol);
+    }
+
+    @GetMapping("/symbolAndPrice")
+    public List<Binance> getBySymbolAndPrice(String symbolName,String price){
+        return this.binanceService.getBySymbolAndPrice(symbolName,price);
+    }
+
+
+
+
 }
