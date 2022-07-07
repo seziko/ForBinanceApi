@@ -4,7 +4,7 @@ import com.binance.api.client.domain.market.TickerPrice;
 import com.seziko.BinanceApi.entities.Binance;
 import com.seziko.BinanceApi.results.DataResult;
 import com.seziko.BinanceApi.results.Result;
-import org.json.JSONArray;
+import com.seziko.BinanceApi.results.SuccessDataResult;
 
 import java.io.IOException;
 import java.util.List;
@@ -28,7 +28,7 @@ public interface BinanceService {
 
     Result findBySymbolBinance(String symbol) throws IOException;
 
-    Result connectBinanceWebSocket(String symbol);
+    SuccessDataResult<List<Binance>> connectBinanceWebSocket(String symbol);
 
     DataResult<List<Binance>> getAllSorted();
 

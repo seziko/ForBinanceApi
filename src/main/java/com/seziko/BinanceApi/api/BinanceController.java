@@ -4,8 +4,10 @@ import com.binance.api.client.domain.market.TickerPrice;
 import com.seziko.BinanceApi.entities.Binance;
 import com.seziko.BinanceApi.results.DataResult;
 import com.seziko.BinanceApi.results.Result;
+import com.seziko.BinanceApi.results.SuccessDataResult;
 import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
+import org.apache.kafka.clients.admin.NewTopic;
 import org.json.JSONArray;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -65,7 +67,7 @@ public class BinanceController {
     }
 
     @GetMapping("/webSocket")
-    public Result connectBinanceWebSocket(String symbol){
+    public SuccessDataResult connectBinanceWebSocket(String symbol){
         return this.binanceService.connectBinanceWebSocket(symbol);
     }
 

@@ -5,6 +5,7 @@ import com.binance.api.client.BinanceApiClientFactory;
 import com.binance.api.client.BinanceApiRestClient;
 import com.binance.api.client.BinanceApiWebSocketClient;
 import com.binance.api.client.domain.event.AggTradeEvent;
+import com.binance.api.client.domain.market.CandlestickInterval;
 import com.binance.api.client.domain.market.TickerPrice;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,29 +16,41 @@ import com.seziko.BinanceApi.results.Result;
 import com.seziko.BinanceApi.results.SuccessDataResult;
 import com.seziko.BinanceApi.results.SuccessResult;
 import com.seziko.BinanceApi.service.BinanceService;
-import jdk.nashorn.internal.parser.JSONParser;
-import org.json.JSONArray;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.messaging.Message;
 import org.springframework.stereotype.Service;
 
+import javax.xml.ws.WebServiceException;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 
 @Service
+//@KafkaListener(topics = "javaguides",groupId = "myGroup")
 public class BinanceManagement implements BinanceService {
 
     private BinanceDao binanceDao;
     @Autowired
     public BinanceManagement(BinanceDao binanceDao) {
         this.binanceDao = binanceDao;
+    }
+
+    @Autowired
+    private KafkaTemplate<String,String> kafkaTemplate;
+
+    public BinanceManagement(KafkaTemplate<String, String> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
     }
 
     @Override
@@ -137,9 +150,10 @@ public class BinanceManagement implements BinanceService {
 
 
     @Override
-    public Result connectBinanceWebSocket(String symbol) {
+    public SuccessDataResult<List<Binance>> connectBinanceWebSocket(String symbol) {
         BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
         Binance binance = new Binance();
+
         client.onAggTradeEvent(symbol, (AggTradeEvent response) -> {
 
             String sembol = response.getSymbol();
@@ -148,23 +162,16 @@ public class BinanceManagement implements BinanceService {
             binance.sembol = sembol;
             binance.fiyat = fiyat;
             binance.id = response.getAggregatedTradeId();
-
             //binanceDao.save(binance);
+            kafkaTemplate.send("javaguides",binance.toString());
             binanceDao.save(binance);
 
 
             System.out.println("id: "+binance.getId()+" sembol: "+binance.getSembol()+" fiyat :"+binance.getFiyat());
         });
 
-        return new SuccessResult("Binance üzerinden gelen veriler eklemeye başlandı..");
+        return new SuccessDataResult<List<Binance>>(this.binanceDao.findAll(),"kayıtlar listelenmiştir.");
 
-    }
-    @Override
-    public Result closeWs(String symbol) throws IOException {
-        BinanceApiWebSocketClient client = BinanceApiClientFactory.newInstance().newWebSocketClient();
-        Closeable ws = client.onAggTradeEvent(symbol, (BinanceApiCallback<AggTradeEvent>) connectBinanceWebSocket(symbol));
-        ws.close();
-        return new SuccessResult("Bağlantı kapandı..");
     }
 
     @Override
@@ -185,6 +192,11 @@ public class BinanceManagement implements BinanceService {
         long count = binanceDao.count();
         return new SuccessResult("Toplam "+count+" adet listelenmiştir."
         );
+    }
+
+    @Override
+    public Result closeWs(String symbol) throws IOException {
+        return null;
     }
 
     @Override
